@@ -1,11 +1,16 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from anthropic import Anthropic
-import base64, httpx, json
+import base64, httpx, json, os
 from datetime import date
+import os
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+client = Anthropic(api_key=ANTHROPIC_API_KEY)
+
 
 app = FastAPI()
-client = Anthropic()
+client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
