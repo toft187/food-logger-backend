@@ -60,6 +60,7 @@ async def log_audio(audio: UploadFile = File(...)):
             data={"model": "whisper-1", "language": "sv"}
         )
     whisper_data = whisper_resp.json()
+    print(f"Whisper response: {whisper_data}")  # Loggas i Railway
     if "text" not in whisper_data:
         return {"error": "Whisper fel", "details": whisper_data}
     transcript = whisper_data["text"]
