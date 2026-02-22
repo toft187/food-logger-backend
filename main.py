@@ -3,11 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from anthropic import Anthropic
 import base64, httpx, json, os
 from datetime import date
-import os
+
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
-client = Anthropic(api_key=ANTHROPIC_API_KEY)
-
 
 app = FastAPI()
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
@@ -61,7 +59,10 @@ async def log_audio(audio: UploadFile = File(...)):
             files={"file": (audio.filename, audio_bytes, audio.content_type)},
             data={"model": "whisper-1", "language": "sv"}
         )
-    transcript = whisper_resp.json()["text"]
+    whisper_data = whisper_resp.json()
+    if "text" not in whisper_data:
+        return {"error": "Whisper fel", "details": whisper_data}
+    transcript = whisper_data["text"]
     resp = client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=800,
@@ -77,13 +78,13 @@ async def log_photo(photo: UploadFile = File(...)):
     img_bytes = await photo.read()
     b64 = base64.standard_b64encode(img_bytes).decode()
     resp = client.messages.create(
-        model="claude-sonnet-4-20250514",  # Vision kräver Sonnet
+        model="claude-sonnet-4-5-20250514",  # Vision kräver Sonnet
         max_tokens=800,
         system=SYSTEM_PROMPT,
         messages=[{
             "role": "user",
             "content": [
-                {"type": "image", "source": {"type": "base64", "media_type": photo.content_type, "data": b64}},
+                {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": b64}},
                 {"type": "text", "text": "Analysera maten på bilden och uppskatta nutritionsvärden."}
             ]
         }]
